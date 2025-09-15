@@ -14,11 +14,12 @@ Ligand parameterization is a crucial process in MD simulations. Here, we provide
 
 5-**Transformation of GAUSSIAN output (.FCHK) to CHG file**, using multifwn to calculate suitable charges for your ligand.
 
-5- **Replacing MOL2 charges  with chg charges in your MOL2 file (nomenclature_file.MOL2)** . You can use change_charges.py to simplify the step. A new MOL2 file, named ready_file.mol2 will be created. 
+6- **Replacing MOL2 charges  with chg charges in your MOL2 file (nomenclature_file.MOL2)** . You can use change_charges.py to simplify the step. A new MOL2 file, named ready_file.mol2 will be created. 
 
-6- **Parameterization with ANTECHAMBER (via ACEPYPE) of the ready_file.mol2 structure**. You can use acpype.sh to simplify the process. 
+7- **Parameterization with ANTECHAMBER (via ACEPYPE) of the ready_file.mol2 structure**. You can use acpype.sh to simplify the process. 
 
 This will generate a new folder containing all the necessary ligand files to run MD simulation with GROMACS. 
+
 
 
 
