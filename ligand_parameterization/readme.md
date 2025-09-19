@@ -12,7 +12,7 @@ Ligand parameterization is a crucial process in MD simulations. Here, we provide
 
 4- This MOL2 file from GAUSSIAN may have lost its correct nomenclature, you can use script mol2_nomenclature.py to get back the correct naming. A new MOL2 file, named nomenclature_file.mol2 will be created. 
 
-5- Aditionally, this MOL2 file may have a column were the ligand name is "UNL". In protein-ligand dynamics with more than one ligand, a conflict can appear if all ligands are named "UNL". To solve this problem, you can use change_UNL.script to change "UNL" for a customized name for each ligand. 
+5- Aditionally, this MOL2 file may have a column were the ligand name is "UNL". In protein-ligand dynamics with more than one ligand, a conflict can appear if all ligands are named "UNL". To solve this problem, you can use change_UNL.script to change "UNL" for a customized name for each ligand (this name should be the same that is present in the original MOL2 with the correct configuration of the ligand)
 
 5-**Transformation of GAUSSIAN output (.FCHK) to CHG file**, using multifwn to calculate suitable charges for your ligand.
 
@@ -21,6 +21,7 @@ Ligand parameterization is a crucial process in MD simulations. Here, we provide
 7- **Parameterization with ANTECHAMBER (via ACEPYPE) of the ready_file.mol2 structure**. You can use acpype.sh to simplify the process. 
 
 This will generate a new folder containing all the necessary ligand files to run MD simulation with GROMACS. 
+
 
 
 
