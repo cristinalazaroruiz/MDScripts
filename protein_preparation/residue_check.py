@@ -15,7 +15,7 @@ import requests
 #                       Working directory
 ##############################################################################
 
-path = r"C:\Users" #change 
+path = r"C:\Users\usuario\Desktop\clazaro_files\PNPOx\estructuras" #change 
 os.chdir(path)
 
 
@@ -40,7 +40,7 @@ def descargar_PDB (lista, path):
 
 
 
-
+#¡¡¡Be careful with modified residues like CME!!!!!
 
 #get sequence from PDB file
 def recuperar_secuencia(fichero):
@@ -73,7 +73,7 @@ def recuperar_secuencia_cadenas(fichero):
         for chain in model:
             secuencia_chain = []
             for residue in chain:
-                if is_aa(residue, standard=True):
+                if is_aa(residue, standard=False): #if true, only 20 standard aa will be consider. I
                     secuencia_chain.append(residue.get_resname())
             if secuencia_chain:
                 secuencias[chain.id] = secuencia_chain
@@ -128,7 +128,7 @@ def pasar_codigo_1letra(secuencia_tres_letras):
     except Exception as e:
         print(f"Error. {e} ")
         print("Se devuelve un string de la secuencia de 3 letras")
-        return "".join(secuencia_tres_letras)
+        return "".join(secuencia_tres_letras) #unusual residues will be named as X
 
 
 #convert 1-code sequence to text file (txt)
