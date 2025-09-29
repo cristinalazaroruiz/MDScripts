@@ -4,11 +4,11 @@ Within MD Simulations, a very important step is the preparation of the protein 3
 
 -There are not missing residues (especially if the structure has been obtained experimentally, like crystallography). To do so, you can use script residue_check.py to extract PDB sequence. Afterwards, you can compare this sequence with the reference sequence from UniProt using a sequence alignment tool (with ClustalX for example). In case there are missing residues, you can use programs like **MODELLER** to reconstruct and model them. MODELLER provides a specific method, called Loop Optimization, for modeling loops and missing residues in PDB structures. In this proyect, you can find two example scripts to run MODELLER:
 
-      -script_1_etapa.py > performs loop modelling (or DOPELoopModeling for higher acurracy) based on an aligmnent file you must prepare (aligmnent.ali) where the missing regions in the PDB must be defined. 
+> script_1_etapa.py > performs loop modelling (or DOPELoopModeling for higher acurracy) based on an aligmnent file you must prepare (aligmnent.ali) where the missing regions in the PDB must be defined. 
       
-     -script_2_etapa.py > refines the models generated in the first step. 
+>script_2_etapa.py > refines the models generated in the first step. 
 
-    You can modify different parameters in these scripts (number of final models, structural restraints...) to suit your specific system. In the output file .log, you can evaluate the models using the DOPE score: the lower (more negative) the score, the better the model. 
+You can modify different parameters in these scripts (number of final models, structural restraints...) to suit your specific system. In the output file .log, you can evaluate the models using the DOPE score: the lower (more negative) the score, the better the model. 
 
 -Remove non-relevant heteroatoms (water molecules, ligands, ions..).
 
