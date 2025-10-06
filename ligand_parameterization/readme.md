@@ -22,7 +22,13 @@ Ligand parameterization is a crucial process in MD simulations. Here, we provide
 
 This will generate a new folder containing all the necessary ligand files to run MD simulation with GROMACS. 
 
-*NOTE: Once the parameterization is done, the files generated with ACEPYPE can be reused for multiple simulations of the same molecules. However, if different GRO files (from the same ligand) are generated with an atom order that does not match the corresponding ITP file, errors may occur. In that case, you can use the script order_itp_gro.py to reorder atoms in the GRO file so that they match the order defined in the ITP file.*
+*NOTE 1: Once the parameterization is done, the files generated with ACEPYPE can be reused for multiple simulations of the same molecules. However, if different GRO files (from the same ligand) are generated with an atom order that does not match the corresponding ITP file, errors may occur. In that case, you can use the script order_itp_gro.py to reorder atoms in the GRO file so that they match the order defined in the ITP file.*
+
+*Note 2: When executing bash scripts in Windows environments (like WSL) errors may occur if the scripts are saved with Windows-style line endings (CRLF). To fix this, you can convert them to Unix-style endings (LF) using the following command:*
+
+> sed -i 's/\r$//' script.sh
+
+
 
 
 
