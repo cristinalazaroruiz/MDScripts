@@ -18,17 +18,20 @@ Ligand parameterization is a crucial process in MD simulations. Here, we provide
 
 6- **Replacing MOL2 charges  with chg charges in your MOL2 file (nomenclature_file.MOL2)** . You can use change_charges.py to simplify the step. A new MOL2 file, named ready_file.mol2 will be created. 
 
-7- **Parameterization with ANTECHAMBER (via ACEPYPE) of the ready_file.mol2 structure**. You can use acpype.sh to simplify the process. 
+7- **Parameterization with ANTECHAMBER (via ACPYPE) of the ready_file.mol2 structure**. You can use acpype.sh to simplify the process. 
 
-This will generate a new folder containing all the necessary ligand files to run MD simulation with GROMACS. 
+This will generate a new folder containing all the necessary ligand ITP files to run MD simulation with GROMACS. 
 
-8. **Transformation of original and protonated ligand files (MOL2 or PDB) to GRO format.** You can use mol2pdb.sh to transform MOL2 files to PDB files and then pdb2gmx.sh to transform PDB files to GRO files. 
+8- **Transformation of original and protonated ligand files (MOL2 or PDB) to GRO format.** You can use mol2pdb.sh to transform MOL2 files to PDB files, and then pdb2gmx.sh to transform PDB files to GRO files. 
 
-*NOTE 1: Once the parameterization is done, the files generated with ACEPYPE can be reused for multiple simulations of the same molecules. However, if different GRO files (from the same ligand) are generated with an atom order that does not match the corresponding ITP file, errors may occur. In that case, you can use the script order_itp_gro.py to reorder atoms in the GRO file so that they match the order defined in the ITP file.*
+With this process, you will have the parameterization files (ITP files from ACPYPE) and the geometry files (GRO) for your ligands. 
+
+*NOTE 1: Once the parameterization is done, the files generated with ACPYPE can be reused for multiple simulations of the same molecules. However, if different GRO files (from the same ligand) are generated with an atom order that does not match the corresponding ITP file, errors may occur. In that case, you can use the script order_itp_gro.py to reorder atoms in the GRO file so that they match the order defined in the ITP file.*
 
 *Note 2: When executing bash scripts in Windows environments (like WSL) errors may occur if the scripts are saved with Windows-style line endings (CRLF). To fix this, you can convert them to Unix-style endings (LF) using the following command:*
 
 > sed -i 's/\r$//' script.sh
+
 
 
 
