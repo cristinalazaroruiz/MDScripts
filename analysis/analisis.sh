@@ -1,30 +1,30 @@
 #!/bin/bash
-# Script interactivo para ejecutar CPPTRAJ y calcular matrices de distancia y correlación (en dat y en npy)
+# Interactive script to run CPPTRAJ and calculate distance and correlation matrix (in DAT and en NPY)
 
-# === 1. Leer los nombres de los ficheros ===
-read -p "Topología (.prmtop): " TOPO
-read -p "Referencia (.pdb): " REF
-read -p "Trayectoria (.xtc/.nc): " TRAJ
-read -p "Nombre matriz de distancias (.dat): " DIST
-read -p "Nombre matriz de correlaciones (.dat): " CORR
-read -p "Nombre del fichero log (.log): " LOG
-# === 2. Mostrar configuración ===
+# === 1. Read al files ===
+read -p "Topology (.prmtop): " TOPO
+read -p "Reference (.pdb): " REF
+read -p "Trayectory (.xtc/.nc): " TRAJ
+read -p "Name of distance matrix (.dat): " DIST
+read -p "Name of correlation matrix (.dat): " CORR
+read -p "Name of log file (.log): " LOG
+# === 2. Show settings===
 echo ""
-echo "   Ejecutando CPPTRAJ con:"
-echo "   Topología     : $TOPO"
-echo "   Referencia    : $REF"
-echo "   Trayectoria   : $TRAJ"
-echo "   Distancias →  $DIST"
-echo "   Correlación → $CORR"
+echo "   Run CPPTRAJ with:"
+echo "   Topology     : $TOPO"
+echo "   Reference    : $REF"
+echo "   Trayectory   : $TRAJ"
+echo "   Distance     :  $DIST"
+echo "   Correlation  : $CORR"
 echo ""
 
-# === 3. Ejecutar CPPTRAJ con control de errores ===
+# === 3.Run CPPTRAJ managing exceptions ===
 if cpptraj <<EOF > $LOG
 parm $TOPO
 reference $REF
 trajin $TRAJ 1 last 1
 
-# Si hay solvente o iones:
+# If there are solvent or ions
 # parmstrip :SOL,:NA,:CL
 # strip :SOL
 # strip :NA,:CL
@@ -40,14 +40,14 @@ EOF
 then
     # === 4. Finalizar si todo va bien ===
     echo ""
-    echo "✅ CPPTRAJ finalizado correctamente."
-    echo "Log guardado en: $LOG"
+    echo "CPPTRAJ finshed successfully."
+    echo "Log saved in: $LOG"
 
-    #== 5. Convertir .dat a .npy usando Python ==
+    #== 5. Change .dat to .npy with Python (numpy) ==
     python - <<END
 import numpy as np
 try:
-	#Cargar matrices desde .dat
+	# Load matrix from .DAT
 	dist = np.loadtxt("$DIST")
 	corr = np.loadtxt("$CORR")
 	print("First lines of distance matrix: ")
@@ -56,23 +56,23 @@ try:
 	print("\nfirst lines of corr matrix: ")
 	print(f"{corr[:5, :]}")
 	
-	#Guardar como float32 en formato .npy
+	#Save as float32 in .NPY format
 	np.save("${DIST%.dat}.npy", dist.astype(np.float32))
 	np.save("${CORR%.dat}.npy", corr.astype(np.float32))
 
-	print("✅ Archivos convertidos a .npy: ${DIST%.dat}.npy, ${CORR%.dat}.npy")
+	print("Files converted to .NPY: ${DIST%.dat}.npy, ${CORR%.dat}.npy")
 
 except Exception as e:
-	print("Error al convertir los ficheros .dat a .npy con Python (numpy)")
-	print(f"Detalles del error: {e}")
+	print("Error when converting DAT to NPY with Python (numpy")
+	print(f"Error details: {e}")
 END
 
 else
-    # === 5. Mensaje de error si CPPTRAJ falla ===
+    # === 5. Error message if CPPTRAJ fails ===
     echo ""
-    echo "❌ Error: CPPTRAJ terminó con errores. $LOG"
+    echo "Error in CPPTRAJ. $LOG"
 fi
 
 echo ""
-echo "Fin del script"
+echo "End of script"
 

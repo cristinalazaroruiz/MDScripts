@@ -1,11 +1,12 @@
-#Para algunos programas, necesitamos que nuestra proteina dimerica tenga dos 
-#cadenas con numeracion distinta (la B de forma consecutiva a la A).
 
+# For some programs, you may need your hodimer protein to have two chains (A and B)
+# with different nomenclature (chain B starting from chain A last residue)
 
 ###############################################################################
 #                           Functions
 ###############################################################################
 
+#read PDB and save information of all chains
 def leer_pdb(fichero):
     cadena_A = []
     cadena_B = []
@@ -33,39 +34,40 @@ def leer_pdb(fichero):
         return cadena_A, cadena_B, FAD_A, FAD_B, NAD
             
     except Exception as e:
-        print(f"Error al cargar el fichero {fichero}")
-        print(f"Detalles del error: {e}")
+        print(f"Error in loading file {fichero}")
+        print(f"Error details: {e}")
         return cadena_A, cadena_B, FAD_A, FAD_B, NAD
 
 
-
+#change chain B nomenclature
 def cambiar_cadenaB(cadena_A, cadena_B):
     nueva_cadena_B = []
     try:
         if not cadena_A:
-            raise ValueError("No se encontró la cadena A en el fichero PDB.")
+            raise ValueError("Chain A not found in PDB file.")
         if not cadena_B:
-            raise ValueError("No se encontró la cadena B en el fichero PDB.")
+            raise ValueError("Chain B not found in PDB file.")
 
-        #prmero recuperamos la info de cual es el ultimo residuo cadena A
-        #y generamos nuestro contador
+        # Firstly, we get last chain A residue number 
+        # Generate our counter for chain B
         
         ultima_linea_A = cadena_A[-1]
         ultimo_residuo_cadena_A = int(ultima_linea_A[22:26])
         contador_cadena_B = ultimo_residuo_cadena_A +1
         
-        # Seguimiento del residuo anterior para saber cuándo cambia
-        residuo_actual = cadena_B[0][17:26] #incluimos resName y resSeq
+        # Get current residue (with resName and resSeq) to know when it changes
+        residuo_actual = cadena_B[0][17:26] #include resName y resSeq
         
         for elemento in cadena_B:
             residuo = elemento[17:26]
 
-            # Si el residuo cambia, aumentamos el contador
+            # If residue changes, we increase the counter
             if residuo != residuo_actual:
                 contador_cadena_B += 1
                 residuo_actual = residuo
 
-            # Sustituimos el número del residuo en la línea
+        
+            # Replace residue number with the counter
             nuevo_num = str(contador_cadena_B).rjust(4)
             nueva_linea = elemento[:22] + nuevo_num + elemento[26:]
             nueva_cadena_B.append(nueva_linea)
@@ -75,20 +77,20 @@ def cambiar_cadenaB(cadena_A, cadena_B):
     
     except Exception as e:
         
-        print("Error al renumerar la cadena B")
-        print(f"Detalles del error: {e}")
+        print("Error in renumbering chain B")
+        print(f"Error details: {e}")
         
     return nueva_cadena_B
 
 
-
+#Write new file (no overwrite)
 def escribir_nuevo_pdb(fichero, cadena_A, nueva_cadena_B, FAD_A, FAD_B, NAD):
     try:
         with open(f"nuevo_{fichero}", "w", encoding="utf-8") as f:
             f.writelines(cadena_A + nueva_cadena_B + FAD_A +FAD_B + NAD)
     except Exception as e:
-        print(f"Error al escribir la nueva version de {fichero}")
-        print(f"Detalles del error: {e}")
+        print(f"Error when updating file: {fichero}")
+        print(f"Error details: {e}")
         
         
         
@@ -97,37 +99,37 @@ def escribir_nuevo_pdb(fichero, cadena_A, nueva_cadena_B, FAD_A, FAD_B, NAD):
 ###############################################################################
 
 while True:
-    print("¿Qué quieres hacer?\n")
-    print("(1) >> Renumerar cadena B")
-    print("(2) >> Salir\n")
+    print("What do you want to do?\n")
+    print("(1) >> Renumber chain B")
+    print("(2) >> Exit\n")
     n = input("Write an option (1 or 2): ")
     
     if n == "1":
         
-        print("\n⚠️ Este script asume: ")
-        print("Proteina dimerica con cadenas A y B")
-        print("Dos FADs en cadenas C y D")
-        print("Puede tener un NAD en una cadena E")
-        print("Revisa el PDB y comprueba que se cumplen estos requisitos\n")
+        print("\n⚠️ This script assumes: ")
+        print("Homodimer protein with chains A and B")
+        print("Two FADs in chains C y D")
+        print("May have NAD in chain E")
+        print("Revise PDB and check all requirements are fulfiled\n")
               
         
-        fichero = input("Nombre del fichero PDB: ")
+        fichero = input("Enter PDB name: ")
         
         cadena_A, cadena_B, FAD_A, FAD_B, NAD = leer_pdb(fichero)
         nueva_cadena_B = cambiar_cadenaB(cadena_A, cadena_B)
         escribir_nuevo_pdb(fichero, cadena_A, nueva_cadena_B, FAD_A, FAD_B, NAD)
         
-        print(f"Fichero {fichero} actualizado con éxito")
+        print(f"File {fichero} successfully")
     
     
     elif n == "2":
         
-        print("Saliendo...")
+        print("Exiting...")
         
         break 
     
     else:
-        print("Error en el input. Escribe 1 ó 2. ")
+        print("Error in input. Write 1 or 2. ")
         
         
         
