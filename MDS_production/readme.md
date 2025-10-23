@@ -1,4 +1,4 @@
-# MOLECULAR DYNAMICS SIMULATION PRODUCTION
+# Molecular Dynamics Simulation Production
 
 This folder contains scripts to run Molecular Dynamics (MD) simulations using GROMACS.
 
