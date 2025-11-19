@@ -8,3 +8,5 @@ In this folder you can find scripts to simplify and automate the analysis of res
 - *analisis.sh* > this script uses **cpptraj**, from ambertools to obtain the distance matrix and correlation matrix in DAT an NPY format. Note that you need AMBER topology (prmtop) to use this script. You can obtain it from GROMACS topology file (TOP) with *parmed* (specifically *gromber*). You also need python an numpy installed in your system.
 
 - *rmsd_analysis.R* > This R script plots XVG files from GROMACS (RMSD, RMSF, etc.)
+
+- *gromacs_commands.sh* > this bash script allows running different gromacs commands for processing files (removing PBCs, calculating RMSD, distances...). 
