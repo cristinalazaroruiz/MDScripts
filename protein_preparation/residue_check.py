@@ -15,7 +15,7 @@ import requests
 #                       Working directory
 ##############################################################################
 
-path = r"C:\Users\usuario\Desktop\clazaro_files\PNPOx\estructuras" #change 
+path = r"Desktop/clazaro_files/MurA_articulo/dinamicas_Diego_MurA" #change 
 os.chdir(path)
 
 

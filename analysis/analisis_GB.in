@@ -1,0 +1,42 @@
+# General namelist variables
+#contains variables that apply to all aspects of the calculation or parameters required for building AMBER # topologies from GROMACS files.
+&general
+  sys_name             = "MM/GB"             	             # System name
+  startframe           = 10000                       	     # First frame to analyze (quitamos primeros 100ns de simulacion)
+  endframe             = 9999999                             # Last frame to analyze
+  interval              = 10                      	     # The offset from which to choose frames from each trajectory file
+  #forcefields          ="oldff/leaprc.ff03,leaprc.gaff"     # Not needed if you use a topology file. 
+  interaction_entropy   = 0				     # Interaction Entropy (IE) approximation. O no, 1 yes. 
+  #ie_segment            = 100				     # all quartiles of the total number of frames used to calculate average interaction entropy
+ # qh_entropy            = 1                                 # quasi-harmonic entropy (QH) aproximation with ccptraj (frames must be 3N, where N=atoms in system)
+  temperature           = 310
+  verbose               = 2
+  keep_files            = 2                                  # conservar todos los archivos temporales (util para diagnosticar errores) 
+/
+
+# PB calculation > slower but potentialy more efficient (not always)
+#&pb
+#  ipb                     = 2                       # calculo de superficie con level-set (mas robusto, recomendado)
+#  radiopt                 = 0                       # radio atomico del prmtop file (calculado del top)
+#  npbopt                  = 0			    # linear PB equation (LPBE)
+#  istrng                 = 0.150                   # fuerza ionica del solvente: 150mM (concentracion fisiologica). 
+/
+
+
+# GB calculation (computationaly more efficient)
+&gb
+igb                      = 8                        # GBn model
+intdiel                  = 2                        # Dielectric constant (default = 1)
+extdiel                  = 80                       # Constante dielectrica del agua
+saltcon                  = 0.150                    #fuerza ionica (M)
+/
+
+#energy decomposition per residue
+&decomp 
+ idecomp                 = 1                       # energia por residuo clasica
+ dec_verbose             = 0                       # Imprimir solo energia por residuo
+ print_res               = "within 5"              # imprime residuos dentro de 5 Å entre receptor y ligando (se puede ajustar)
+ csv_format              = 1                       #print csv file and standard error of the mean will be calculated and included for all data.
+
+
+#si σIE > 3.0–3.6 kcal/mol, la IE no es fiable, debido a que los frames estan muy espaciados (10picosegundos, cuando lo recomdable es 0.1-1)

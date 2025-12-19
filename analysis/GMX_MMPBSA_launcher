@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#SBATCH -J MMPBSA
+#SBATCH -o /home/clazaroruiz/msg/mmpbsa_%j.out
+#SBATCH -e /home/clazaroruiz/msg/mmpbsa_%j.err
+#SBATCH -p agustina_thin
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=16
+#SBATCH --gpus=0
+#SBATCH --account=flavotech
+
+#######################################################################
+##                    ACTIVATE CONDA ENVIRONMENT                     ##
+#######################################################################
+module load anaconda/2024
+source $ANACONDA3_HOME/bin/activate /fs/agustina/$(whoami)/conda-env/gmxMMPBSA
+
+#######################################################################
+##                          RUN MMPBSA                               ##
+#######################################################################
+
+for rep in r4 r5; do
+
+    # Inputs
+    xtc="open_UNAG_MD_${rep}_noPBC.xtc"
+    tpr="open_UNAG_MD_${rep}.tpr"
+    index="open_UNAG.ndx"
+    in="analisis_GB.in"
+    top="topol_clean.top"
+    output="results_${rep}"
+    pdb="open_UNAG_MD_${rep}_fr0.pdb"   
+
+    # Outputs
+    dat_output="${output}.dat"
+    csv_output="${output}.csv"
+    csv_dec="${output}_dec.csv"
+
+    echo "Processing replica: $rep"
+
+    # Check input exist
+    if [[ ! -f "$xtc" || ! -f "$tpr" ]]; then
+        echo "$xtc or $tpr don't exist. Skipping ${rep}."
+        continue
+    fi
+
+    if gmx_MMPBSA -O \
+        -i "$in" \
+        -ct "$xtc" \
+        -cs "$tpr" \
+        -ci "$index" \
+        -cp "$top" \
+        -cr "$pdb" \
+        -o "$dat_output" \
+        -cg 1 13 \
+        -deo "$csv_dec" \
+        -eo "$csv_output"; then
+
+        echo "Replica $rep finished successfully"
+
+    else
+        echo "Error in replica $rep while running gmx_MMPBSA"
+
+    fi
+
+done
+
+echo "Script finished"
+

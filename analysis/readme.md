@@ -1,4 +1,4 @@
-# ANALYSIS OF MD SiMULATIONS
+# ANALYSIS OF MD SIMULATIONS
 
 In this folder you can find scripts to simplify and automate the analysis of results from GROMACS MD simulations.
 
@@ -10,3 +10,7 @@ In this folder you can find scripts to simplify and automate the analysis of res
 - *rmsd_analysis.R* > This R script plots XVG files from GROMACS (RMSD, RMSF, etc.)
 
 - *gromacs_commands.sh* > this bash script allows running different gromacs commands for processing files (removing PBCs, calculating RMSD, distances...). 
+
+- *analisis_script_spmweb* > python script to analyze results from SPM Web Server (https://spmosuna.com/) in order to get a table with numerical values of significance of residue radius and sticks. 
+
+- *GMX_MMPBSA_launcher+analisis_GB.in* > files to launch a free binding energy calculation of protein-ligand complex with gmx_MMPBSA tool. 
