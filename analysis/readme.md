@@ -14,3 +14,5 @@ In this folder you can find scripts to simplify and automate the analysis of res
 - *analisis_script_spmweb* > python script to analyze results from SPM Web Server (https://spmosuna.com/) in order to get a table with numerical values of significance of residue radius and sticks. 
 
 - *GMX_MMPBSA_launcher+analisis_GB.in* > files to launch a free binding energy calculation of protein-ligand complex with gmx_MMPBSA tool. 
+
+- *clustering.Rmd* > Rmarkdown defining a protocol to cluster paths generated with SPMweb and analyzed with the tables created with  *analisis_script_spmweb*
