@@ -16,3 +16,5 @@ In this folder you can find scripts to simplify and automate the analysis of res
 - *GMX_MMPBSA_launcher+analisis_GB.in* > files to launch a free binding energy calculation of protein-ligand complex with gmx_MMPBSA tool. 
 
 - *clustering.Rmd* > Rmarkdown defining a protocol to cluster paths generated with SPMweb and analyzed with the tables created with  *analisis_script_spmweb*
+
+- *load_trajectories_pymol.py* > a script to illustrate how to load several gromacs trajectories in pymol automatically, using python syntaxis. 
