@@ -15,6 +15,12 @@ In this folder you can find scripts to simplify and automate the analysis of res
 
 - *GMX_MMPBSA_launcher+analisis_GB.in* > files to launch a free binding energy calculation of protein-ligand complex with gmx_MMPBSA tool. 
 
-- *clustering.Rmd* > Rmarkdown defining a protocol to cluster paths generated with SPMweb and analyzed with the tables created with  *analisis_script_spmweb*
+- *clustering_protocol.Rmd* > Rmarkdown defining a protocol to cluster paths generated with SPMweb and analyzed with the tables created with  *analisis_script_spmweb*
 
-- *load_trajectories_pymol.py* > a script to illustrate how to load several gromacs trajectories in pymol automatically, using python syntaxis. 
+- *load_trajectories_pymol.py* > a script to illustrate how to load several gromacs trajectories in pymol automatically, using python syntaxis.
+
+- *protocolo_separacion_cadenas.sh* > a script that demonstrates a protocol to separate a GROMACS trajectory (.xtc) into two individual chains,  generating corresponding .tpr, .gro and .xtc files for each chain while preserving the original replica structure.  
+
+- *analisis_distancias.r* > An R script demonstrating how to load .xvg files (using the xvm library) containing atom distances calculated with GROMACS, and how to plot them in various ways.
+
+- *esadisticas_distancias.r* > An R script demonstrating how to load .xvg files (using the xvm library) containing atom distances calculated with GROMACS, and how to perform various statistical analyses. 

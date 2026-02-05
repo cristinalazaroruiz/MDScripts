@@ -12,9 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # **Cargar librerias**
 
-El primer paso para trabajar con R es cargar todas las librerías que vamos a
-necesitar para nuestro analisis. En este caso, para la clusterizacion que vamos
-a hacer, son:
+El primer paso para trabajar con R es cargar todas las librerías que vamos a necesitar para nuestro analisis. En este caso, para la clusterizacion que vamos a hacer, son:
 
 ```{r}
 
@@ -29,8 +27,7 @@ library(clusterSim)
 
 # **Cargar los datos**
 
-El siguiente paso es cargar todas las tablas que hemos recuperado de los scripts
-pml de SPMweb, para poder trabajar con la informacion que contienen:
+El siguiente paso es cargar todas las tablas que hemos recuperado de los scripts pml de SPMweb, para poder trabajar con la informacion que contienen:
 
 ```{r}
 ###Primero tenemos que leer todos lo excels del directorio y cargar lo dataframes 
@@ -48,71 +45,122 @@ for (i in seq_along(file_list)) {
 
 # **Preparar la matriz de propiedades**
 
-Tal y como están presentados los datos, no podemos hacer clusterización. 
-Necesitamos una tabla donde cada registro (fila) sea un objeto distinto y cada
-columna corresponda con una propiedad distinta de dicho objeto (esta propiedad
-debe ser numérica). 
+Tal y como están presentados los datos, no podemos hacer clusterización. Necesitamos una tabla donde cada registro (fila) sea un objeto distinto y cada columna corresponda con una propiedad distinta de dicho objeto (esta propiedad debe ser numérica). 
+
 En ese caso vamos a elegir las siguientes propiedades de cada objeto:
-- Su nombre (el nombre del excel que hemos cargado por cada objeto)
-- Número de interacciones (número de filas de cada excel)
-- Número de residuos totales en cada objeto/mapa
-- Media de radios y sticks
-- Desviación estándar de radios y sticks
+- Su nombre (el nombre del excel que hemos cargado por cada objeto).
+- Número de interacciones (número de filas de cada excel).
+- Número de residuos totales en cada objeto/mapa.
+- Densidad de la red (interacciones que hay frente a todas las que podría haber).
+- Media de los radios de los residuos que seleccionemos.
 
-*¡¡¡los dos últimos los vamos a cambiar por la media y sd del radio de residuos clave en el path > hay que determinar cuáles!!!*
+*Solo vamos a tomar los radios de algunos residuos que consideremos importantes en el path > hay que determinar cuáles!!!*
 
-En realidad, con estos parámetros, estamos perdiendo información estructural, como el tipo de interacciones que ocurren y su relevancia individual, la relevancia de ciertos residuos frente a otros... Estamos eligiendo unas huellas estructurales, que simplifican la información y hacen más sencillo el proceso, pero hay que ser conscientes de que se pierde parte de la información. 
+En realidad, con estos parámetros, estamos perdiendo información estructural, como el tipo de interacciones que ocurren y su relevancia individual, la relevancia de ciertos residuos frente a otros... Estamos eligiendo unas "huellas estructurales", que simplifican la información y hacen más sencillo el proceso, pero hay que ser conscientes de que se pierde parte de la información. 
 
 ```{r}
-#ahora vamos a convertir esta informacion en una matriz de informacion numerica
+# ahora vamos a convertir esta informacion en una matriz de informacion numerica
+# hay que buscar residuos significativos para coger el grosor de su radio
 
-features <- lapply(file_list, function(df) {
-  spheres <- c(df$Sphere_Radius_1, df$Sphere_Radius_2)
-  data.frame(
-    n_pairs = nrow(df), #numero de interacciones ue hay 
-    stick_mean = mean(df$Stick_Radius), #media de los sticks
-    stick_sd   = sd(df$Stick_Radius), #sd de los sticks
-    sphere_mean = mean(spheres),
-    sphere_sd = sd(spheres),
-    n_residues = length(unique(c(df$Residue_1, df$Residue_2))), #numero de residuos/mapa
-    density = nrow(df) / (length(unique(c(df$Residue_1, df$Residue_2)))^2) #como de conectada es la red (interacciones por residuo frente a las que podria tener)
+# los radios de un mismo residuo los podemos tener en dos columnas distintas
+mean_sphere_radius <- function(df, resid) {
+  
+  radios <- c(
+    ifelse(df$Residue_1 == resid, df$Sphere_Radius_1, NA),
+    ifelse(df$Residue_2 == resid, df$Sphere_Radius_2, NA)
   )
+  
+  if (all(is.na(radios))) {
+    NA
+  } else {
+    mean(radios, na.rm = TRUE)
+  }
+}
+
+# residuos de interes (cambiar segun corresponda) !!!!!
+residuos_interes <- c(45, 72, 101, 150)
+
+# construccion de la matriz de features
+features <- lapply(file_list, function(df) {
+  
+  # dataframe base con features globales
+  out <- data.frame(
+    n_pairs    = nrow(df),
+    n_residues = length(unique(c(df$Residue_1, df$Residue_2))),
+    density    = nrow(df) / (length(unique(c(df$Residue_1, df$Residue_2)))^2)
+  )
+  
+  # añadimos una columna por residuo (radio medio)
+  for (r in residuos_interes) {
+    out[[paste0("mean_resid_", r)]] <- mean_sphere_radius(df, r)
+  }
+  
+  out
 })
 
+# matriz final de caracteristicas
 feature_matrix <- do.call(rbind, features)
+
+# nombres de filas = archivos
 rownames(feature_matrix) <- files
+
+# guardamos las labels para proximos analisis
 labels <- rownames(feature_matrix)
 
+# resultado final
 feature_matrix
+
+
 ```
 
 
-# **Escalado**
+# **Imputación de valores faltantes y Escalado**
 
-Por último, antes de empezar con los algoritmos de clustering, tenemos que
-escalar los datos, ya que se encuentran en distinta escala (algunos números
-son muy grandes, otros muy pequeños) y unidad de medida y, por lo tanto, tal y
-como están, no son comparables entre sí. 
-Escalamos para que todas las columnas tengan una media de 0 y una desviación
-estándar de 1, de modo que sean comparables entre sí. 
+Antes de empezar con los algoritmos de clustering, tenemos que evaluar dos aspectos:
+1) Presencia de valores faltantes (NA): necesitamos que nuestro dataframe final no tenga valores faltantes. Para ello, podemos eliminar las variables que tengan NAs o, aplicar algun método de imputación. 
+2) Escalado de los datos: tal y como están los datos, se encuentran en distinta escala (algunos números son muy grandes, otros muy pequeños) y diferente unidad de medida. Por lo tanto, tal y como están, no son comparables entre sí. Escalamos para que todas las columnas tengan una media de 0 y una desviación estándar de 1, de modo que sean comparables entre sí. 
 
 ```{r}
-#escalamos los datos
-feature_matrix_scaled <- scale(feature_matrix)
+#Imputacion de valores faltantes
+#Para comprobar si hay valores faltantes
+any(is.na(feature_matrix))
 
-#comprobamos que no haya datos nulos
+#Podemos analizar que variables tienen valores faltantes:
+colSums(is.na(feature_matrix))
+
+#Si no son muchas variables, podemos eliminarlas directamente. Sin embargo, si eliminar dichas variables implica perder mucha informacion, podemos aplicar otros metodos de imputacion. En este caso, sustituimos el NA por la mediana de la columna
+
+#en el caso de mean_resid_45 y mean_resid_72, como todo (o casi todo) son valores faltantes, eliminamos directamente la columna
+feature_matrix <- feature_matrix[, !(colnames(feature_matrix) %in% c("mean_resid_45", "mean_resid_72"))]
+
+
+#Con el resto de columnas, imputamos por la mediana
+feature_matrix_imp <- feature_matrix
+
+columnas_con_NAs <- c("mean_resid_101", "mean_resid_150") #añadir aqui las columnas con valores faltantes a imputar
+
+for (col in columnas_con_NAs) {
+  feature_matrix_imp[[col]][is.na(feature_matrix_imp[[col]])] <- 
+    median(feature_matrix_imp[[col]], na.rm = TRUE)
+}
+
+
+#Ahora pasamos al escalado
+feature_matrix_scaled <- scale(feature_matrix_imp)
+
+#comprobamos que no haya datos nulos al hacer el escalado
 any(is.na(feature_matrix_scaled))
 
 feature_matrix_scaled_df <- as.data.frame(feature_matrix_scaled)
 feature_matrix_scaled_df
+
+
 ```
 
 ## *SEGUNDA PARTE: CLUSTERIZACIÓN*
 
-Clusterizar consiste en agrupar observaciones (filas/paths) que sean lo suficiente
-similares entre si, y distintas al resto, como para formar un grupo diferenciado. 
-Existen distintos algoritmos de clusterización. En este caso, vamos a usar dos 
-(de momento, se pueden buscar más alternativas)
+Clusterizar consiste en agrupar observaciones (filas/paths) que sean lo suficiente similares entre si, y distintas al resto, como para formar un grupo diferenciado. 
+Existen distintos algoritmos de clusterización. En este caso, vamos a usar dos (de momento, se pueden buscar más alternativas)
 
 # **Clusterización jerárquica aglomerativa**
 
@@ -144,7 +192,7 @@ matrix_dist <- dist(feature_matrix_scaled, method = "euclidean")
 #aplicamos varios metodos de linkeage
 
 hclust_model_single <- hclust(matrix_dist, method = "single") #parecido a GROMACS
-hclust_model_ward <- hclust(matrix_dist, method = "ward.D2") #muy usado en datos
+hclust_model_ward <- hclust(matrix_dist, method = "ward.D2") #muy usado en datos biologicos
 hclust_model_average <- hclust(matrix_dist, method = "average") #usado en AMBER
 
 #hay que tantear varios K que tengan sentido biologico. Empezamos con k= 2 (dos grupos)
@@ -204,6 +252,7 @@ grupos_ward_table <- data.frame(
 colors <- c("red", "blue")
 
 grupos_ward_table$color <- colors[grupos_ward_table$grupo]
+grupos_ward_table
 
 #hacemos el grafico de barras
 grafico_ward <- ggplot(grupos_ward_table, aes(x = grupo, fill = color))+geom_bar()+
@@ -224,6 +273,7 @@ grupos_single_table <- data.frame(
 colors <- c("red", "blue")
 
 grupos_single_table$color <- colors[grupos_single_table$grupo]
+grupos_single_table
 
 #hacemos el grafico de barras
 grafico_single <- ggplot(grupos_single_table, aes(x = grupo, fill = color))+geom_bar()+
@@ -244,6 +294,7 @@ grupos_average_table <- data.frame(
 colors <- c("red", "blue")
 
 grupos_average_table$color <- colors[grupos_average_table$grupo]
+grupos_average_table
 
 #hacemos el grafico de barras
 grafico_average <- ggplot(grupos_average_table, aes(x = grupo, fill = color))+geom_bar()+
@@ -264,30 +315,30 @@ grafico_average
 
 # **Clusterización no jerárquica (enfoque K-Means)**
 
-En la clusterización no jerárquica, se asume que no hay solapamientos entre
-clústers (no hay grupos dentro de grupos). 
+En la clusterización no jerárquica, se asume que no hay solapamientos entre clústers (no hay grupos dentro de grupos). 
 
 Dentro de la clusterización no jerárquica, el método más usado es K-means.
 Lo que se hace en este caso es etablecer un número k de centroides. Estos centroides van a ser el punto de partida para determinar la pertenencia a cada clúster (hay un centroide por clúster). Estos centroides no tienen por qué ser datos reales del dataset, sino que se calculan matemáticamente. De forma iterativa, se calcula las distancias entre cada punto y cada centroide y cada punto se asigna al clúster con el centroide más cercano. El proceso es iterativo, lo que permite optimizar las posiciones de los centroides, hasta generar las mejores agrupaciones posibles.
 
-Para determinar el número óptimo de centroides, se puede usar la función fviz_nbclust() para graficar el error de cada cluster (wss) y aplicar la regla del codo > llega un punto donde el error se estabiliza, y añadir más clústers no reduce más de forma significativa el error. Aunque esta regla no siempre funciona.
-
 Ventajas: 
 -Es un método sencillo y no es computacionalmente costoso. 
+
 Inconvenientes: 
 -Puede ser difícil elegir el número de centroides óptimo. 
 -Es sensible a la presencia de valores atípicos.
+
+*Vamos a hacer un ejemplo con k = 2*
 
 ```{r}
 #vamos a usar la distancia euclidiana
 set.seed(123) #semilla para controlar aleatoriedad y reproducibilidad
 
-kmeans.result.euclidean <- kmeans(feature_matrix_scaled, centers = 3, iter.max=100,
+kmeans.result.euclidean <- kmeans(feature_matrix_scaled, centers = 2, iter.max=100,
                                   algorithm = c("Hartigan-Wong", "Lloyd", "Forgy",
                                                 "MacQueen"), nstart = 25)
 
 kmeans_euclidean.plot <- fviz_cluster(kmeans.result.euclidean, data = feature_matrix_scaled, xlab = "Dimension 1",
-                                      ylab ="Dimension 2")+ggtitle("K-Means distancia euclidiana", subtitle = "")+
+                                      ylab ="Dimension 2")+ggtitle("K-Means distancia euclidiana", subtitle = "K=2")+
   theme_minimal() 
 
 kmeans_euclidean.plot
@@ -297,7 +348,7 @@ kmeans_euclidean.plot
 df_clusters <- data.frame(ID = labels,
                           Cluster = kmeans.result.euclidean$cluster) 
 
-
+df_clusters
 #Para ver mejor los grupos graficamos
 df_clusters$Cluster <- as.factor(df_clusters$Cluster)
 
@@ -312,7 +363,9 @@ kmeans_euclidean.var
 ## *TERCERA PARTE: MÉTRICAS PARA EVALUAR LA CALIDAD DE LOS ALGORITMOS DE CLUSTERIZACIÓN*
 
 A pesar de que no hay un criterio único para evaluar la calidad de los algoritmos, existen algunas métricas que pueden comparar los algoritmos entre si:
--Davies-Bouldin index (DBI): comprueba si los clusters son compactos (los puntos de un mismo cluster están cerca entre sí) y están bien separados (los puntos de distintos clusters están lejos entre sí). En términos generales, un DBI menor indica un mejor clustering. (Nota: solo se pueden comparar los algoritmos si se ha elegido en todos los casos el mismo número de clusters o similar)
+
+-Davies-Bouldin index (DBI): comprueba si los clusters son compactos (los puntos de un mismo cluster están cerca entre sí) y están bien separados (los puntos de distintos clusters están lejos entre sí). En términos generales, un DBI menor indica un mejor clustering. (Nota: solo se pueden comparar los algoritmos si se ha elegido en todos los casos el mismo número de clusters o similar).
+
 -pseudo F-statistic (pSF): compara la varianza entre clusters con el ruido interno de cada cluster. En este caso, valores más altos de psF indican un mejor clustering. 
 
 Estas métricas no son perfectas y hay que usarlas con cuidado. Por ejemplo, a veces psF aumenta por incrementar el número de clusters, no porque el clustering realmente sea mejor. Del mismo modo, a veces DBI puede ser bajo si tenemos muchos clusters con una única observación (su dispersión interna se vuelve 0, pero no es significativo).
@@ -388,6 +441,7 @@ print(paste0("pSF Average:", psF_average))
 # **Regla del Codo (elbow criterion)**
 
 Para estimar o intunir el k óptimo, se puede usar la regla del codo, que consiste en graficar cómo varia la WSS (Within-cluster sum of squares), es decir, la dispersión de los puntos con respecto a su centroide, conforme aumenta el número de clusters.
+
 Cuanto más pequeño sea el WSS, más compacto son los clusters. Al aumentar k, WSS siempre disminuye, ya que las observaciones se encuentran más cercanos a su centroide. Por ello, gráficamente lo que se busca es el punto donde el WSS deja de disminuir de forma significativa. Esto se ve visualmente como un "codo" en la gráfica y sugiere un número razonable de clusters.
 
 
@@ -467,6 +521,7 @@ single_elbow_df
 
 
 *Chequear*
+-En la matriz de características, hay que determinar qué residuos son relevantes para tomar su media (residuos que se repitan de forma consitente en todos los paths, que siempre tengan un bastante grosor, que resulten claves para la enzima...)
 -Comprobar en literatura si estos algoritmos de clustering son los más adecuados para agrupar estructuras de proteínas (comprobar qué opciones dan AMBER, GROMACS, estudios de otros papers...)
 -Analizar qué numero de clusters (k) tendría sentido con nuestros datos. Para eso prmero hay que mirar los mapas y pensar qué tendría sentido biológico.Una aproximación podría ser elegir una batería de k y luego chequear con las diferentes métricas y analizando los clusters que se forman. 
 -Dentro de los algoritmos de clusterizacion aglomerativa, comprobar qué método de linkeage es el más adecuado (incluso tantear otras opciones)
