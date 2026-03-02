@@ -29,13 +29,12 @@ def get_information_script(lines):
     dict_residue_radius = {}
     dict_pair_stick = {}
 
-    current_stick_radius = None
+    last_pair = None  
 
     for raw in lines:
         linea = raw.strip()
 
-        # sphere_scale
-        # Example: set sphere_scale,0.49279019466474405, SPM_8rfn_r10 and resi 101
+        # -------- SPHERE SCALE --------
         if linea.startswith("set sphere_scale"):
             m = re.search(r"set\s+sphere_scale,([\d\.eE+-]+).*resi\s+(\d+)", linea)
             if m:
@@ -44,29 +43,21 @@ def get_information_script(lines):
                 dict_residue_radius[residue] = radius
             continue
 
-        # stick_radius
-        # Example: set stick_radius,0.43876896772814705, SPM_8rfn_r10
-        if linea.startswith("set stick_radius"):
-            m = re.search(r"set\s+stick_radius,([\d\.eE+-]+)", linea)
-            if m:
-                current_stick_radius = float(m.group(1))
+        # -------- BOND (GUARDAR PAR) --------
+        m_bond = re.search(r"bond name ca and resi (\d+), name ca and resi (\d+)", linea)
+        if m_bond:
+            r1, r2 = m_bond.group(1), m_bond.group(2)
+            last_pair = f"{r1}/{r2}"
             continue
 
-        # create with resi A+B
-        # Example: create SPM_8rfn_r10, name ca and resi 101+102 and 8rfn_r1
-        if linea.startswith("create") and current_stick_radius is not None:
-            m = re.search(r"resi\s+(\d+)\+(\d+)", linea)
-            if m:
-                r1, r2 = m.group(1), m.group(2)
-                pair = f"{r1}/{r2}"
-                dict_pair_stick[pair] = current_stick_radius
-                # reset: we assume that stick_radius corresponded with that create
-                current_stick_radius = None
-            else:
-                print(f"Warning: 'create' line ignored (unexpected format): {linea}")
+        # -------- STICK RADIUS (ASIGNAR AL ÚLTIMO BOND) --------
+        m_stick = re.search(r"set\s+stick_radius,([\d\.eE+-]+)", linea)
+        if m_stick and last_pair is not None:
+            dict_pair_stick[last_pair] = float(m_stick.group(1))
+            last_pair = None
+            continue
 
     return dict_residue_radius, dict_pair_stick
-
         
 #create separate dataframes for radiuos and sticks
 def create_dataframes(dict_residue_radius, dict_pair_stick , script):
